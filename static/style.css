@@ -1,0 +1,232 @@
+/* style.css - 深米灰 版升级 */
+
+:root {
+    --primary-bg: #D4C4A8;        /* 深米灰 */
+    --primary-bg-hover: #C5B494;  /* 悬停时略深 */
+    --primary-ring: rgba(212,196,168,0.5); /* 聚焦环 */
+  }
+  
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  html, body {
+    height: 100%;
+  }
+  
+  body {
+    display: flex;
+    flex-direction: column;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: #f5f7fa;
+    color: #333;
+    margin: 0;
+  }
+  
+  /* 顶部 header 改为深米灰背景 */
+  header {
+    background-color: var(--primary-bg) !important;
+    color: #fff; /* 白字保证高对比 */
+  }
+  
+  /* 主聊天区 */
+  #chatBox {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem; /* 每则讯息自然呼吸 */
+    background: #fff;
+  }
+  
+  /* 通用气泡样式 */
+  .msg {
+    max-width: 90%;
+    line-height: 1.5;
+    word-wrap: break-word;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 0.8rem 1.2rem;
+    border-radius: 20px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+    animation: fadeInUp 0.4s ease;
+  }
+  .msg:not(.user) {
+    animation-delay: 0.1s;
+  }
+  
+  /* 使用者讯息（右侧） */
+  .user {
+    align-self: flex-end;
+    background: #d0e6ff;
+    color: #111;
+    border-radius: 20px 20px 0 20px;
+  }
+  
+  /* xiaoyu（左侧吐槽王） */
+  .xiaoyu {
+    align-self: flex-start;
+    background: #ffd1d1;
+    color: #c62828;
+    border-radius: 20px 20px 20px 0;
+  }
+  
+  /* anan（右侧疗愈师） */
+  .anan {
+    align-self: flex-end;
+    background: #d4f0d7;
+    color: #2e7d32;
+    border-radius: 20px 20px 0 20px;
+  }
+  
+  /* pipi（左侧搞笑担当） */
+  .pipi {
+    align-self: flex-start;
+    background: #f0f9ff;
+    color: #1565c0;
+    border-radius: 20px 20px 20px 0;
+  }
+  
+  /* 输入区设计 */
+  #inputArea {
+    display: flex;
+    padding: 0.8rem;
+    background: #ffffff;
+    border-top: 1px solid #ddd;
+  }
+  #userInput {
+    flex: 1;
+    padding: 0.8rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: 999px;
+    outline: none;
+    font-size: 1rem;
+    height: 2.8rem;
+  }
+  /* 输入框聚焦时的深米灰 ring */
+  #userInput:focus {
+    box-shadow: 0 0 0 3px var(--primary-ring);
+  }
+  
+  /* 送出按钮：深米灰背景 & 等高 */
+  #sendBtn {
+    margin-left: 0.5rem;
+    height: 2.8rem;
+    padding: 0 1.6rem;
+    background-color: var(--primary-bg);
+    color: #fff; /* 白字 */
+    border: none;
+    border-radius: 999px;
+    font-size: 1rem;
+    transition: background 0.3s;
+  }
+  #sendBtn:hover {
+    background-color: var(--primary-bg-hover);
+  }
+  #sendBtn:active {
+    background-color: #B8A983; /* 比 hover 再深一点 */
+  }
+  
+  /* 出场小动画 */
+  @keyframes fadeInUp {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* 角色图标 */
+  /* .msg .icon {
+    display: inline-block;
+    width: 1.6rem;
+    text-align: center;
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+    line-height: 1.4;
+    /* flex-shrink: 0; }
+
+    /* 让 option .option 元素内的 span 成为一个可点区域 */
+  #cr-icon-options label.option span {
+    display: inline-block;
+    padding: 0.25rem;
+    border-radius: 0.5rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  /* hover 放大一点 */
+  #cr-icon-options label.option:hover span {
+    transform: scale(1.2);
+  }
+  
+  /* 选中时给一个描边或阴影 */
+  #cr-icon-options input[type="radio"]:checked + span {
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.7);
+  }
+
+  #cr-icon-options label span {
+    flex-shrink: 0;
+  }
+
+  :root {
+    --primary-bg:  #E2CFC3; /* 默认 米色 */
+    --accent:      #4A90E2; /* 默认 按钮等 */
+    --bubble-user: #CEF0FA; /* 用户气泡 */
+  }
+  body {
+    background-color: var(--primary-bg);
+  }
+  /* header、送出按钮、聊天气泡等都用 var(--accent) 做主色 */
+  header { background-color: var(--accent)!important; }
+  #sendBtn { background-color: var(--accent); }
+  #sendBtn:hover { background-color: darken(var(--accent),10%); }
+  /* 输入框 focus */
+  #userInput:focus { border-color: var(--accent); }
+  
+  /* 小样本气泡，按需更多 */
+  .user  { background: var(--bubble-user); }
+  
+  /* 下面是四种预设色 —— swatch 小方块 */
+  .swatch {
+    width: 2rem; height: 2rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .swatch[data-theme-key="sunrise"] { background: #f37b1d; }
+  .swatch[data-theme-key="mint"]    { background: #4ABDAC; }
+  .swatch[data-theme-key="mocha"]   { background: #79a6ea; }
+  .swatch[data-theme-key="night"]   { background: #6739b6; }
+  
+  /* 选中态，加框或发光提示 */
+  .swatch.selected {
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.4);
+  }
+  
+  .swatch[data-theme-key="default"] {
+    background: #1cbbb4; /* 身体背景 */
+    border: 2px solid #4a90e2; /* 主按钮色，方便识别 */
+  }
+  
+  /* —— 去除 Chrome/Edge 的自动填充黄色底 —— */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  /* 改成你想要的背景色，比如白色 */
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+          box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  /* 如果你有自定义字体颜色，也可以在这里重设 */
+  -webkit-text-fill-color: #333 !important;
+}
+
+/* —— 去掉浏览器自带的黄色焦点轮廓 —— */
+#userInput:focus,
+#sendBtn:focus {
+  outline: none !important;
+  /* 并用自己的 ring/box-shadow 代替（可选）: */
+  box-shadow: 0 0 0 2px rgba(74,144,226,0.5);
+}
+
+    
+  
+  

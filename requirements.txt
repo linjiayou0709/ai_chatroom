@@ -1,0 +1,9 @@
+pyyaml
+flask>=2.2.0
+openai>=1.0.0
+autogen_agent 
+autogen_core
+autogen_ext
+asyncio
+pydantic 
+pydantic_core

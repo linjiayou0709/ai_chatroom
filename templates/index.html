@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <!-- 响应式视口 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI療心室 🌿</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 自定义样式 -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+  <body class="flex flex-col h-screen bg-gray-50">
+    <!-- 侧边菜单（Off-Canvas） -->
+  <div id="offcanvas" class="hidden fixed inset-0 z-50 flex">
+    <!-- 半透明遮罩 -->
+    <div
+    id="canvas-backdrop"
+    class="absolute inset-0 bg-black opacity-50 hidden">
+    </div>
+    <!-- 菜单内容 -->
+    <nav id="canvas-menu"
+     class="relative bg-white w-64 h-full shadow-xl transform transition-transform -translate-x-full
+            overflow-y-auto p-4">
+      <div class="p-4 border-b">
+        <h2 class="text-lg font-semibold">功能選單</h2>
+      </div>
+      <ul class="mt-4">
+        <li class="p-4 hover:bg-gray-100 cursor-pointer" onclick="clearChat()">清除聊天</li>
+        <li class="p-4 hover:bg-gray-100 cursor-pointer" onclick="toggleThemePanel()">切換主題</li>
+        <li class="p-4 hover:bg-gray-100 cursor-pointer" onclick="about()">關於</li>
+        <!-- 新增這一行 -->
+        <li class="p-4 hover:bg-gray-100 cursor-pointer" onclick="openCustomRoleForm()">自定義角色</li>
+        <li class="p-4 hover:bg-gray-100 cursor-pointer" onclick="toggleAgentSelection()">聊天人選</li>
+      </ul>
+    
+
+      <!-- 自定義角色設定表單 -->
+      <div id="customRoleForm" class="p-4 hidden border-t bg-gray-50">
+        <h3 class="text-md font-medium mb-2">自定義角色設定</h3>
+
+        <!-- 名字 -->
+        <label for="cr-name" class="block mb-1">名字：</label>
+        <input id="cr-name" name="cr-name" type="text"
+              class="w-full mb-2 px-2 py-1 border rounded"
+              placeholder="例如：小宇">
+
+        <!-- 職業 -->
+        <label for="cr-profession" class="block mb-1">職業：</label>
+        <input id="cr-profession" name="cr-profession" type="text"
+              class="w-full mb-2 px-2 py-1 border rounded"
+              placeholder="例如：霸氣吐槽王">
+
+        <!-- 人格描述 -->
+        <label for="cr-description" class="block mb-1">人格描述：</label>
+        <textarea id="cr-description" name="cr-description" rows="2"
+                  class="w-full mb-2 px-2 py-1 border rounded"
+                  placeholder="例如：直來直往、吐槽力滿點"></textarea>
+
+        <!-- 認識年數 -->
+        <label for="cr-years" class="block mb-1">認識年數：</label>
+        <input id="cr-years" name="cr-years" type="number" min="0"
+              class="w-full mb-2 px-2 py-1 border rounded"
+              placeholder="例如：10">
+
+        <!-- 常常與你 -->
+        <label for="cr-relation" class="block mb-1">常常與你：</label>
+        <select id="cr-relation" name="cr-relation"
+                class="w-full mb-2 px-2 py-1 border rounded">
+          <option value="唱反調">唱反調</option>
+          <option value="站一邊">站一邊</option>
+        </select>
+
+        <!-- 語氣 -->
+        <label for="cr-tone" class="block mb-1">語氣：</label>
+        <input id="cr-tone" name="cr-tone" type="text"
+              class="w-full mb-2 px-2 py-1 border rounded"
+              placeholder="例如：直白幽默">
+
+        <!-- 圖示選擇（嵌套式，不需要 for/id） -->
+        <label class="block mb-1">選擇角色圖示：</label>
+        <div
+             id="cr-icon-options"
+             class="flex space-x-3 mb-4 overflow-x-auto"
+             style="scrollbar-width: thin; /* Firefox */"
+          >  
+          <label class="option cursor-pointer text-2xl inline-flex items-center">
+            <input type="radio" name="cr-icon" value="🙋‍♂️" checked class="hidden">
+            <span aria-hidden="true">🙋‍♂️</span>
+          </label>
+          <label class="option cursor-pointer text-2xl inline-flex items-center">
+            <input type="radio" name="cr-icon" value="🧑‍🦰" class="hidden">
+            <span aria-hidden="true">🧑‍🦰</span>
+          </label>
+          <label class="option cursor-pointer text-2xl inline-flex items-center">
+            <input type="radio" name="cr-icon" value="👼" class="hidden">
+            <span aria-hidden="true">👼</span>
+          </label>
+          <label class="option cursor-pointer text-2xl inline-flex items-center">
+            <input type="radio" name="cr-icon" value="🐷" class="hidden">
+            <span aria-hidden="true">🐷</span>
+          </label>
+          <label class="option cursor-pointer text-2xl inline-flex items-center">
+            <input type="radio" name="cr-icon" value="👩" class="hidden">
+            <span aria-hidden="true">👩</span>
+          </label>
+        </div>
+
+        <div class="mt-3 flex justify-end space-x-2">
+          <button onclick="closeCustomRoleForm()"
+                  class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">
+            取消
+          </button>
+          <button onclick="saveCustomRole()"
+                  class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+            儲存
+          </button>
+        </div>
+      </div>
+      
+      <!-- 主题选择折叠面板 -->
+      <div id="themePanel" class="p-4 hidden border-t bg-gray-50">
+        <h3 class="text-md font-semibold mb-2">主題配色</h3>
+        <div class="flex space-x-4">
+          <!-- 每个 swatch 用 data-theme-key 标记 -->
+               <!-- 新增：原始預設 -->
+          <div class="swatch cursor-pointer" data-theme-key="default" title="預設風格"></div>
+          <div class="swatch cursor-pointer" data-theme-key="sunrise" title="陽光金"></div>
+          <div class="swatch cursor-pointer" data-theme-key="mint"    title="薄荷綠"></div>
+          <div class="swatch cursor-pointer" data-theme-key="mocha"   title="摩卡棕"></div>
+          <div class="swatch cursor-pointer" data-theme-key="night"   title="夜幕黑"></div>
+        </div>
+      </div>
+       <!-- 聊天人選 -->
+      <div id="agentSelectionPanel" class="p-4 hidden border-t bg-gray-50">
+          <h3 class="text-md font-semibold mb-2">聊天人選 (最多 3 位)</h3>
+          <div id="agentCheckboxes" class="space-y-2">
+            <!-- JS 会在这里插入小宇/安安/皮皮 以及自定义角色的复选框 -->
+          </div>
+      </div>
+
+    </nav>
+  </div>
+
+
+  <!-- 頂部標題 -->
+  <header class="relative bg-[var(--primary-bg)] text-white text-center py-4 shadow-md flex items-center justify-center">
+    <!-- 汉堡按钮 -->
+    <button id="menuBtn" class="absolute left-4 text-white focus:outline-none">
+      <!-- Heroicons Menu SVG -->
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+           viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+  
+    <!-- 居中标题 -->
+    <div class="mx-auto">
+      <h1 class="text-2xl font-bold">🌟 AI療心室 🌟</h1>
+      <p class="text-sm mt-1 italic">療心室，讓你放心聊心事</p>
+    </div>
+  </header>
+  
+
+  <!-- 聊天內容 -->
+  <main id="chatBox" class="flex-1 overflow-y-auto p-4 space-y-2 bg-white">
+    <!-- 訊息會加在這裡 -->
+  </main>
+
+  <!-- 輸入區 -->
+  <footer>
+    <div id="inputArea" class="flex items-center p-4 space-x-3 bg-white shadow-inner">
+      <input
+        id="userInput"
+        class="flex-1 px-4 py-2 h-12 border rounded-full focus:outline-none focus:ring focus:ring-blue-200"
+        placeholder="請輸入訊息..."
+        autocomplete="off"
+      />
+      <button
+        id="sendBtn"
+        class="h-12 px-4 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition"
+      >
+        送出
+      </button>
+    </div>
+  </footer>
+
+  <!-- JS 區 -->
+  <script>
+    // 只在最开头声明一次：
+    const maxAgents = 3;
+    let selectedAgents = ['小宇','安安','皮皮'];
+    const allAgents = ['小宇','安安','皮皮'];
+    const customPrompts = {};  // name -> system_prompt
+    // 初始三位都选中
+    // 页面加载后，先渲染一次复选框
+    renderAgentCheckboxes();
+    // —— 新增折叠函数 —— //
+    function toggleAgentSelection() {
+      document
+        .getElementById("agentSelectionPanel")
+        .classList
+        .toggle("hidden");
+    }
+
+    // 存放自定义角色的 Icon
+    const customIcons   = {};
+
+    /** 開啟自定義角色表單 **/
+    function openCustomRoleForm() {
+      document.getElementById("customRoleForm").classList.remove("hidden");
+    }
+
+    /** 關閉自定義角色表單 **/
+    function closeCustomRoleForm() {
+      document.getElementById("customRoleForm").classList.add("hidden");
+    }
+
+
+    // 渲染复选框列表
+    function renderAgentCheckboxes() {
+      const container = document.getElementById("agentCheckboxes");
+      container.innerHTML = "";
+
+      allAgents.forEach(name => {
+        const label = document.createElement("label");
+        label.className = "flex items-center space-x-2";
+
+        const cb = document.createElement("input");
+        cb.type      = "checkbox";
+        cb.className = "agent-checkbox";
+        cb.value     = name;
+        // 只有在 selectedAgents 里才勾选
+        cb.checked   = selectedAgents.includes(name);
+
+        const span = document.createElement("span");
+        span.textContent = name;
+
+        label.append(cb, span);
+        container.append(label);
+      });
+
+      bindAgentCheckboxes();  // 继续使用已有的绑定逻辑
+    }
+
+
+    // 在脚本最后，确保一加载就渲染初始列表
+    renderAgentCheckboxes();
+
+    const ICONS = {
+      user:   "👤",
+      小宇:   "🙎‍♂️",
+      安安:   "🧖‍♀️",
+      皮皮:   "🤹‍♂️",
+      系統:   "⚙️"
+    };
+
+    const input   = document.getElementById("userInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const chatBox = document.getElementById("chatBox");
+    
+
+    function getAgentCheckboxes() {
+      return Array.from(document.querySelectorAll('.agent-checkbox'));
+    }
+
+
+    function updateAgentCheckboxes() {
+      const checked = Array.from(agentCheckboxes).filter(c => c.checked);
+      // 禁用其余 checkbox
+      getAgentCheckboxes().forEach(c => {
+        if (!c.checked) {
+          c.disabled = (checked.length >= maxAgents);
+        }
+      });
+    }
+    // 初始化
+    updateAgentCheckboxes();
+    // 绑定 change 事件
+    getAgentCheckboxes().forEach(c => {
+      c.addEventListener('change', updateAgentCheckboxes);
+    });
+
+    // 在发送时，收集选中的角色
+    function getSelectedAgents() {
+      return Array.from(
+        document.querySelectorAll('.agent-checkbox')
+      )
+      .filter(cb => cb.checked)
+      .map(cb => cb.value);
+    }
+
+    async function sendMessage() {
+      const msg = input.value.trim();
+      if (!msg) return;
+
+      const agents = getSelectedAgents();
+      if (agents.length === 0) {
+        alert('至少選一位聊天人選');
+        return;
+      }
+
+      // 先渲染用户消息
+      appendMsg("你", msg, "user");
+      input.value = "";
+
+      // 把参与者名单也塞进去
+      const res = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: msg,
+          participants: agents,
+          custom: customPrompts
+        })
+      });
+
+      const data = await res.json();
+      if (data.error) {
+        appendMsg("系統", data.error, "系統");
+        return;
+      }
+
+      data.responses.forEach((r, idx) => {
+        setTimeout(() => {
+          appendMsg(r.name, r.content, r.name);
+        }, idx * 800);
+      });
+    }
+
+    function appendMsg(name, content, cls) {
+      const div = document.createElement("div");
+      div.className = `msg ${cls}`;
+
+      // 优先：用户自定义 icon > 预设 ICONS > 默认人形
+      const icon = customIcons[cls] ?? ICONS[cls] ?? "👤";
+
+      div.innerHTML = `
+        <span class="icon">${icon}</span>
+        <div class="text">
+          <strong>${name}</strong><br>
+          ${content}
+        </div>
+      `;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+
+    sendBtn.addEventListener("click", sendMessage);
+    input.addEventListener("keypress", e => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // —— 以下是漢堡菜單邏輯，不修改上面任何功能 —— //
+
+    // 取元素
+    const offcanvas  = document.getElementById("offcanvas");
+    const menuPanel  = document.getElementById("canvas-menu");
+    const backdrop   = document.getElementById("canvas-backdrop");
+    const menuBtn    = document.getElementById("menuBtn");
+
+    function toggleMenu() {
+      const isHidden = offcanvas.classList.contains("hidden");
+      if (isHidden) {
+        offcanvas.classList.remove("hidden");
+        requestAnimationFrame(() => {
+          menuPanel.classList.replace("-translate-x-full", "translate-x-0");
+        });
+      } else {
+        menuPanel.classList.replace("translate-x-0", "-translate-x-full");
+        menuPanel.addEventListener("transitionend", () => {
+          offcanvas.classList.add("hidden");
+        }, { once: true });
+      }
+    }
+
+    // 点击按钮或遮罩都切换菜单
+    menuBtn.addEventListener("click", toggleMenu);
+    backdrop.addEventListener("click", toggleMenu);
+    // 菜單項目功能範例
+    function clearChat() {
+      chatBox.innerHTML = "";
+      toggleMenu();
+    }
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+      toggleMenu();
+    }
+    function about() {
+      alert("AI療心室 v1.0\n© 2025，Jiayou Lin");
+      toggleMenu();
+    }
+
+      // —— 新增：点击空白自动关菜单 —— //
+    document.addEventListener('click', function(e) {
+      // 如果菜单当前是打开状态
+      const isOpen = !offcanvas.classList.contains('hidden');
+      if (!isOpen) return;
+
+      // 点击目标：既不在菜单面板内，也不是菜单按钮
+      const clickedInsideMenu = menuPanel.contains(e.target);
+      const clickedMenuBtn    = menuBtn.contains(e.target);
+
+      if (!clickedInsideMenu && !clickedMenuBtn) {
+        toggleMenu();
+      }
+    });
+
+    // 预设主题色板
+    const themes = {
+      default: {
+        primaryBg:  '#f5f7fa',  // 原始 米白
+        accent:     '#1cbbb4',  // 原始 藍色
+        bubbleUser: '#9ee5e1'   // 原始 用戶氣泡
+      },
+      sunrise: {
+        primaryBg:  '#F5C469',
+        accent:     '#f37b1d',
+        bubbleUser: '#F9E7BE'
+      },
+      mint: {
+        primaryBg:  '#E0F7F1',
+        accent:     '#4ABDAC',
+        bubbleUser: '#D1F0E8'
+      },
+      mocha: {
+        primaryBg:  '#F1EDEA',
+        accent:     '#79a6ea',
+        bubbleUser: '#E8DFD7'
+      },
+      night: {
+        primaryBg:  '#2E2E2E',
+        accent:     '#6739b6',
+        bubbleUser: '#cdb8f3'
+      }
+    };
+
+    const themePanel = document.getElementById("themePanel");
+
+    // 切换主题面板显示/隐藏
+    function toggleThemePanel() {
+      themePanel.classList.toggle("hidden");
+    }
+
+    // 应用某个主题
+    function applyTheme(key) {
+      const t = themes[key];
+      if (!t) return;
+      const root = document.documentElement;
+      root.style.setProperty('--primary-bg',  t.primaryBg);
+      root.style.setProperty('--accent',      t.accent);
+      root.style.setProperty('--bubble-user', t.bubbleUser);
+
+      // 更新选中态
+      document.querySelectorAll('#cr-icon-options .swatch')
+        .forEach(el => el.classList.remove('selected'));
+      document.querySelector(`.swatch[data-theme-key="${key}"]`)
+        .classList.add('selected');
+    }
+
+    // 初始化：为每个 swatch 绑定点击事件
+    document.querySelectorAll('.swatch').forEach(el => {
+      el.addEventListener('click', () => {
+        applyTheme(el.dataset.themeKey);
+      });
+    });
+
+    // 你也可以在页面加载时设默认主题
+    applyTheme('sunrise');
+
+
+        /** 打开自定义角色表单 **/
+    function openCustomRoleForm() {
+      document.getElementById("customRoleForm").classList.remove("hidden");
+    }
+    
+
+
+
+    function saveCustomRole() {
+      // 1. 读取并校验所有字段
+      const name       = document.getElementById("cr-name").value.trim();
+      const profession = document.getElementById("cr-profession").value.trim();
+      const desc       = document.getElementById("cr-description").value.trim();
+      const years      = document.getElementById("cr-years").value.trim();
+      const relation   = document.getElementById("cr-relation").value;
+      const tone       = document.getElementById("cr-tone").value.trim();
+      const iconVal    = document.querySelector('input[name="cr-icon"]:checked').value;
+
+      if (!name || !profession || !desc || !years || !relation || !tone) {
+        alert("請完整填寫所有欄位！");
+        return;
+      }
+
+      // 2. 拼出角色的 System Prompt
+      const roleTemplate = `("${name}", """
+    # Role: ${profession} 🙎‍♂️
+    -language: 繁體中文
+    -description: ${desc}
+    ## Attention
+    你是一個${profession}，與user擁有${years}年友誼。
+    你的任務是：
+    + 與user${relation}。
+    + 與user聊天，像是朋友一樣。
+    + 能夠一起玩樂，也可以共同走過困境。     
+    ## Constraints
+    - 語氣${tone}。
+    - 不要太死板，有情感的聊天。
+    """)`;
+
+      // 3. 存到 customPrompts 和 customIcons
+      customPrompts[name] = roleTemplate;
+      customIcons[name]   = iconVal;
+
+      // 4. 更新 allAgents 数组并重绘复选框列表
+      allAgents.push(name);
+      // 2) 如果当前已选 < 3，就把它默认选中
+      if (selectedAgents.length < maxAgents) {
+        selectedAgents.push(name);
+      } else {
+        // 否则不默认选，让用户自己去勾
+        // alert("当前已选达到上限，新角色未自动勾选");
+      }
+
+      // 3) 重新渲染
+      renderAgentCheckboxes();
+
+      // 5. 清空表单字段（手动赋空）
+      document.getElementById("cr-name").value        = "";
+      document.getElementById("cr-profession").value  = "";
+      document.getElementById("cr-description").value = "";
+      document.getElementById("cr-years").value       = "";
+      document.getElementById("cr-relation").value    = "唱反調";
+      document.getElementById("cr-tone").value        = "";
+      // 重置 Icon 单选回第一个
+      document.querySelector('input[name="cr-icon"][value="🙋‍♂️"]').checked = true;
+
+      // 6. 给用户提示并关闭表单
+      appendMsg("系統", `已新增角色：${name}`, "系統");
+      closeCustomRoleForm();
+    }
+
+
+
+
+
+    /**
+     * 绑定所有 .agent-checkbox 的 change 事件
+     * 并立即更新禁用状态（最多 3 位）
+     */
+    function bindAgentCheckboxes() {
+      const boxes = document.querySelectorAll(".agent-checkbox");
+      boxes.forEach(cb => {
+        // 先移除可能已存在的重复监听
+        cb.replaceWith(cb.cloneNode(true));
+      });
+      const fresh = document.querySelectorAll(".agent-checkbox");
+      fresh.forEach(cb => {
+        cb.addEventListener("change", updateAgentCheckboxes);
+      });
+      // 一次性执行一次更新，让超过限制的禁用掉
+      updateAgentCheckboxes();
+    }
+
+    /**
+     * 根据已选数量，禁用其余多余复选框
+     */
+    function updateAgentCheckboxes() {
+      const boxes   = Array.from(document.querySelectorAll(".agent-checkbox"));
+      const checked = boxes.filter(c => c.checked).length;
+      boxes.forEach(cb => {
+        if (!cb.checked) {
+          cb.disabled = (checked >= 3);
+        }
+      });
+    }
+
+    // 页面加载时，先对原生 3 位做一次绑定
+    bindAgentCheckboxes();
+    // 在脚本末尾，把原始风格作为第一选择
+    applyTheme('default');
+
+    </script>
+
+
+</body>
+</html>
