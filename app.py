@@ -1,27 +1,23 @@
 import os
-
-
-# app.py
-
-
-import yaml
 from flask import Flask, render_template, request, jsonify
 from openai import OpenAI
 from agents import roles
 
-# 载入配置
-with open("ai_chatroom_model_config.yaml", "r", encoding="utf-8") as f:
-    cfg = yaml.safe_load(f)
-MODEL_NAME       = cfg.get("model", "gpt-4o-mini")
-TEMPERATURE      = cfg.get("temperature", 0.5)
-MAX_TOKENS       = cfg.get("max_tokens", 200)
-FREQ_PENALTY     = cfg.get("frequency_penalty", 0)
-PRESENCE_PENALTY = cfg.get("presence_penalty", 0)
+# —— 从 ENV 读取 —— #
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    raise RuntimeError("請先設定環境變數 OPENAI_API_KEY")
 
-# 初始化新 OpenAI Client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+MODEL_NAME       = os.getenv("MODEL_NAME",       "gpt-4o-mini")
+TEMPERATURE      = float(os.getenv("TEMPERATURE",      0.5))
+MAX_TOKENS       = int(os.getenv("MAX_TOKENS",       400))
+FREQ_PENALTY     = float(os.getenv("FREQ_PENALTY",     0))
+PRESENCE_PENALTY = float(os.getenv("PRESENCE_PENALTY", 0))
 
+client = OpenAI(api_key=OPENAI_API_KEY)
 app = Flask(__name__)
+# … 剩下路由逻辑不用改 …
+
 
 @app.route('/')
 def index():
