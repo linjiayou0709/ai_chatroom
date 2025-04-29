@@ -7,3 +7,4 @@ autogen_ext
 asyncio
 pydantic 
 pydantic_core
+gunicorn>=20.0.4
